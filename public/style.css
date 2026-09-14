@@ -1,0 +1,471 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Общие стили */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #000000; /* Changed from black to blue */
+  background-color: #f0f8ff; /* Changed background to light blue */
+}
+
+
+h1 {
+  text-align: center;
+  margin: 20px auto;
+}
+
+/* Стили для навигации */
+
+nav {
+  background-color: #007bff; /* Changed from dark blue to blue */
+  color: #fff; 
+
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  padding: 15px 15px;
+}
+
+nav a:hover {
+  color: #333;
+  background-color: #ffffff;
+}
+
+.active {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* Стили для таблицы */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5em 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border-spacing: 0;
+  background-color: #fff;
+}
+
+tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+tr:hover {
+  background-color: #f1f3f5;
+}
+
+th,
+td {
+  border: 1px solid #000000;
+  padding: 0.5em;
+  text-align: center;
+}
+
+th {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Стили для форм и поиска */
+
+form {
+  margin: 1em 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5em;
+}
+
+input[type="text"],
+.search-container input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  width: 100%;
+  padding: 10px;
+  margin: 4px 0;
+  box-sizing: border-box;
+  border: 1px solid #000000;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 14px;
+  transition: border-color 0.5s, box-shadow 0.3s;
+  text-align: center;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  color: #000;
+}
+
+/* Стили для select */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  text-align: center;
+}
+
+/* Стили для ошибок */
+.error {
+  color: #f00;
+  font-size: 0.8em;
+  margin-bottom: 1em;
+}
+
+/* Стили для кнопок */
+
+button {
+  width: 100px;
+  background-color: #007bff; /* Changed from dark blue to blue */
+
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 12px 24px;
+  margin-bottom: 8px;
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid rgb(0, 0, 0);
+  padding: 10px 20px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: rgb(255, 255, 255);
+  color: #f00;
+  border: 1px solid #f00;
+  padding: 10px 20px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+#workersTable td:last-child {
+  width: 225px;
+}
+
+#workersTable {
+  width: 95%;
+  margin: 0 auto;
+}
+
+#listTable,
+.search-container {
+  width: 45%;
+  margin: 0 auto;
+}
+
+#listTable td:nth-child(1) {
+  width: 15px;
+}
+
+#listTable td:nth-child(2) {
+  width: 185px;
+}
+
+#listTable td:nth-child(3) {
+  width: 180px;
+}
+
+#listTable td:nth-child(4) {
+  width: 150px;
+}
+
+#listTable td:nth-child(5) {
+  width: 100px;
+}
+
+#listTable td:last-child {
+  width: 170px;
+}
+
+/* Добавляем новые стили для таблиц на странице tables.html */
+
+#educationTable,
+#positionsTable,
+#professionsTable {
+  width: 100%;
+}
+#educationTable th #positionsTable th,
+#professionsTable th,
+#educationTable th #educationTable td,
+#positionsTable td,
+#professionsTable td {
+  padding: 8px; /* Уменьшаем отступы в ячейках */
+}
+/* Уменьшаем ширину столбца с действиями */
+#educationTable td:last-child,
+#positionsTable td:last-child,
+#professionsTable td:last-child {
+  width: 225px;
+}
+.tables-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 2000px; /* Добавляем максимальную ширину */
+  margin: 0 auto; /* Центрируем контейнер */
+}
+.table-wrapper {
+  flex: 1;
+  max-width: 70%; /* Ограничиваем ширину каждой таблицы */
+}
+
+.highlight {
+  background-color: #fffde7;
+  color: #000000;
+}
+
+/* Стили для темной темы */
+body.dark-theme {
+  background-color: #000000;
+  color: #fff;
+}
+
+body.dark-theme table {
+  background-color: #ffffff;
+  color: #000000;
+  box-shadow: 0 4px 6px rgba(250, 250, 250, 0.1);
+  border-spacing: 0;
+}
+
+body.dark-theme th {
+  background-color: #fff;
+  color: #303030;
+}
+
+body.dark-theme input,
+body.dark-theme select {
+  background-color: #333;
+  color: #ffffff;
+  border: 1px solid rgb(0, 0, 0);
+}
+
+body.dark-theme input:focus,
+body.dark-theme select:focus {
+outline: none;
+border-color: #ffffff;
+box-shadow: 0 0 10px rgba(247, 245, 245, 0.7);
+color: #ffffff;
+}
+
+body.dark-theme button {
+  width: 100px;
+  background-color: #007bff; /* Changed to blue for dark theme */
+
+  color: #000000;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 10px 20px;
+  margin-bottom: 5px;
+  border: 1px solid #fff;
+}
+
+body.dark-theme button:hover {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid rgb(211, 211, 211);
+  padding: 10px 20px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+body.dark-theme nav {
+  background-color: #007bff;
+  color: #333;
+  text-align: center;
+  padding: 17px 20px;
+  font-size: 18px;
+}
+
+body.dark-theme nav a {
+  color: #000000;
+  text-decoration: none;
+  padding: 15px 15px;
+}
+
+body.dark-theme nav a:hover {
+  color: #ffffff;
+  background-color: #333;
+}
+
+body.dark-theme .active {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* Стили для кнопки переключения темы */
+#themeToggle {
+  position: absolute;
+  top: 15px;
+  right: 20px; /* Adjusted to move to the top right corner */
+  width: 30px;
+  height: 30px;
+  background-color: #007bff; /* Changed to blue */
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFFFFF'%3E%3Cpath d='M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z'/%3E%3C/svg%3E");
+  background-size: cover;
+}
+
+#themeToggle:hover {
+  filter: invert(0.6);
+}
+
+body.dark-theme #themeToggle:hover {
+  filter: invert(0.7);
+}
+
+/* Стили для поисковой строки */
+.search-container {
+    width: 80%;
+    margin: 20px auto;
+    max-width: 800px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 16px;
+    border: 2px solid #007bff;
+    border-radius: 25px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.search-container input:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+/* Темная тема для поиска */
+body.dark-theme .search-container input {
+    background-color: #333;
+    color: #fff;
+    border-color: #fff;
+}
+
+body.dark-theme .search-container input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    left: 20px;
+    top: 10px;
+}
+
+.logo {
+    width:50px;
+    height: 50px;
+    margin-right: 10px;
+}
+
+nav {
+    position: relative; /* Добавляем для правильного позиционирования логотипа */
+    padding-left: 90px; /* Добавляем отступ слева для логотипа */
+}
+
+/* Для темной темы */
+body.dark-theme .logo {
+    filter: invert(1);
+}
+
+/* Стили для кнопки "Вверх" */
+#scrollToTop {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: #000000;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+#scrollToTop.visible {
+    display: flex;
+}
+
+#scrollToTop:hover {
+    background-color: #000000;
+    transform: translateY(-3px);
+}
+
+.scroll-to-top-logo {
+    width: 30px;
+    height: 30px;
+    filter: invert(1);
+}
+
+/* Для темной темы */
+body.dark-theme #scrollToTop {
+    background-color: #000000;
+    border: 1px solid #ffffff;
+}
+
+body.dark-theme #scrollToTop:hover {
+    background-color: #ffffff;
+}
+
+#listTable td:nth-child(4) {
+    width: 200px;
+}
+
+/* Обновите нумерацию следующих колонок */
+#listTable td:nth-child(5) {
+    width: 150px;
+}
+
+#listTable td:nth-child(6) {
+    width: 100px;
+}
+
+#listTable td:last-child {
+    width: 170px;
+}

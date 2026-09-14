@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Управление контрагентами</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <nav>
+        <div class="logo-container">
+            <img src="img/contract.svg" alt="Логотип" class="logo">
+        </div>
+        <a href="list.html">Договоры</a>
+        <a href="index.html" class="active">Договоры с контрагентами</a>
+        <a href="tables.html">Другие</a>
+    </nav>
+    <h1>Контрагенты</h1>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Поиск по таблице..." />
+    </div>
+    <button id="themeToggle" aria-label="Переключить тему"></button>
+    <table id="workersTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Фамилия</th>
+                <th>Имя</th>
+                <th>Отчество</th>
+                <th>Пол</th>
+                <th>Роль контрагента</th>
+                <th>Наименование контрагента</th>
+                <th>Вид контрагента</th>
+                <th>Вид договора</th>
+                <th>Дата начала</th>
+                <th>Дата конца</th>
+                <th>Действия</th>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="text" name="fam" placeholder="Фамилия" class="input-field" required /></td>
+                <td><input type="text" name="name" placeholder="Имя" class="input-field" required /></td>
+                <td><input type="text" name="otch" placeholder="Отчество" class="input-field" required /></td>
+                <td>
+                  <select name="gender_id" class="input-field" required>
+                        <option value="">Выберите пол</option>
+                        <!-- Пол будет загружен здесь -->
+                  </select>
+                </td>
+                <td>
+                    <select name="prof_id" class="input-field" required>
+                        <option value="">Выберите профессию</option>
+                        <!-- Профессии будут загружены здесь -->
+                         </select>
+                </td>
+                <td>
+                    <select name="position_id" class="input-field" required>
+                        <option value="">Выберите компанию</option>
+                    </select>
+                <td>
+                    <select name="face_id" class="input-field" required>
+                        <option value="">Выберите лицо</option>
+                    </select>
+                </td>
+                <td>
+                  <select name="education_id" class="input-field" required>
+                    <option value="">Выберите договора </option>
+                    <!-- Вид договора будет загружено здесь -->
+                  </select>
+                </td>
+                <td><input type="date" name="date_hired" class="input-field" required /></td>
+                <td><input type="date" name="date_fired" class="input-field" /></td>
+                <td><button id="addWorkerButton">Добавить</button></td>
+                </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Кнопка "Вверх" -->
+    <button id="scrollToTop" title="Наверх" aria-label="Наверх">
+        <img src="img/up.jpg" alt="Наверх" class="scroll-to-top-logo">
+    </button>
+
+    <script>
+      
+      // DOM элементы
+        const workersTableBody = document.getElementById("workersTable").getElementsByTagName("tbody")[0];
+        const addWorkerButton = document.getElementById("addWorkerButton");
+        const searchInput = document.getElementById("searchInput");
+        
+        // Данные приложения
+        let editingWorkerId = null;
+
+        // 1. Поиск по таблице
+        function handleSearch() {
+            const searchValue = this.value.toLowerCase();
+            const rows = workersTableBody.getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const cells = row.getElementsByTagName('td');
+                let found = false;
+                
+                for (let i = 1; i < cells.length - 1; i++) { // Пропускаем ID и кнопки действий
+                    if (cells[i].textContent.toLowerCase().includes(searchValue)) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                row.style.display = found ? '' : 'none';
+            }
+        }
+
+        // 2. Форматирование даты
+        function formatDate(dateString) {
+            if (!dateString) return "Не указано";
+            const date = new Date(dateString);
+            return date.toLocaleDateString("ru-RU");
+        }
+
+        // 3. Загрузка данных
+        async function loadInitialData() {
+            try {
+                await Promise.all([
+                    loadWorkers(),
+                    loadGenders(),
+                    loadProfessions(),
+                    loadPositions(),
+                    loadFace(),
+                    loadEducation()
+                ]);
+                
+                // Проверяем сохраненную тему
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.body.classList.add('dark-theme');
+                }
+            } catch (error) {
+                console.error("Ошибка инициализации:", error);
+                alert("Произошла ошибка при загрузке данных");
+            }
+        }
+
+         // 4. Загрузка работников
+        async function loadWorkers() {
+            try {
+                const response = await fetch("http://localhost:3000/workers");
+                if (!response.ok) throw new Error("Ошибка при загрузке работников");
+                
+                const data = await response.json();
+                renderWorkersTable(data);
+            } catch (error) {
+                console.error("Ошибка:", error);
+                alert("Не удалось загрузить данные работников");
+            }
+        }
+
+        function renderWorkersTable(workers) {
+            workersTableBody.innerHTML = ""; // Очистка таблицы
+            
+            workers.forEach(worker => {
+                const row = workersTableBody.insertRow();
+                row.setAttribute("data-id", worker.id); // Сохраняем ID  в data-атрибуте
+                
+                row.innerHTML = `
+                    <td>${worker.id}</td>
+                    <td>${worker.fam || ''}</td>
+                    <td>${worker.name || ''}</td>
+                    <td>${worker.otch || ''}</td>
+                    <td>${worker.gender_name || 'Не указано'}</td>
+                    <td>${worker.prof_name || 'Не указано'}</td>
+                    <td>${worker.position_name || 'Не указано'}</td>
+                    <td>${worker.face_name || 'Не указано'}</td>
+                    <td>${worker.education_name || 'Не указано'}</td>
+                    <td>${formatDate(worker.date_hired)}</td>
+                    <td>${formatDate(worker.date_fired)}</td>
+                    <td>
+                        <button onclick="editWorker(${worker.id})">Изменить</button>
+                        <button class="delete-button" onclick="deleteWorker(${worker.id})">Удалить</button>
+                    </td>
+                `;
+            });
+        }
+
+      // 5. Загрузка справочников
+        async function loadReferenceData(url, selectName, errorMessage) {
+            try {
+                const select = document.querySelector(`select[name="${selectName}"]`);
+                if (!select) {
+                    console.error(`Элемент select[name="${selectName}"] не найден`);
+                    return;
+                }
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(errorMessage);
+                
+                const data = await response.json();
+                select.innerHTML = `<option value="">${select.querySelector('option').textContent}</option>`;
+                
+                data.forEach(item => {
+                    const option = document.createElement("option");
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Ошибка:", error);
+                // Не показываем alert для справочников, чтобы не заспамить пользователя
+            }
+        }
+
+        async function loadGenders() {
+            await loadReferenceData(
+                "http://localhost:3000/api/genders",
+                "gender_id",
+                "Ошибка при загрузке списка полов"
+            );
+        }
+
+        async function loadProfessions() {
+            await loadReferenceData(
+                "http://localhost:3000/api/professions",
+                "prof_id",
+                "Ошибка при загрузке списка профессий"
+            );
+        }
+
+        async function loadPositions() {
+            await loadReferenceData(
+                "http://localhost:3000/api/positions",
+                "position_id",
+                "Ошибка при загрузке типов договоров"
+            );
+        }
+
+        async function loadFace() {
+            await loadReferenceData(
+                "http://localhost:3000/api/face",
+                "face_id",
+                "Ошибка при загрузке видов контрагентов"
+            );
+        }
+
+        async function loadEducation() {
+            await loadReferenceData(
+                "http://localhost:3000/api/education",
+                "education_id",
+                "Ошибка при загрузке названий договоров"
+            );
+        }
+
+        // 6. CRUD операции
+        async function saveWorker() {
+            const formData = getFormData();
+            
+            if (!validateForm(formData)) {
+                return;
+            }
+
+            try {
+                const url = editingWorkerId 
+                    ? `http://localhost:3000/workers/${editingWorkerId}`
+                    : "http://localhost:3000/workers";
+                    
+                const method = editingWorkerId ? "PUT" : "POST";
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (!response.ok) throw new Error("Ошибка при сохранении данных");
+                
+                resetForm();
+                await loadWorkers();
+            } catch (error) {
+                console.error("Ошибка:", error);
+                alert(error.message);
+            }
+        }
+
+        function getFormData() {
+            return {
+                fam: document.querySelector('input[name="fam"]').value,
+                name: document.querySelector('input[name="name"]').value,
+                otch: document.querySelector('input[name="otch"]').value,
+                gender_id: document.querySelector('select[name="gender_id"]').value,
+                prof_id: document.querySelector('select[name="prof_id"]').value,
+                position_id: document.querySelector('select[name="position_id"]').value,
+                face_id: document.querySelector('select[name="face_id"]').value,
+                education_id: document.querySelector('select[name="education_id"]').value,
+                date_hired: document.querySelector('input[name="date_hired"]').value,
+                date_fired: document.querySelector('input[name="date_fired"]').value || null
+            };
+        }
+
+        function validateForm(data) {
+            const requiredFields = [
+                'fam', 'name', 'otch', 'gender_id', 
+                'prof_id', 'position_id', 'face_id', 
+                'education_id', 'date_hired'
+            ];
+            
+            const missingFields = requiredFields.filter(field => !data[field]);
+            
+            if (missingFields.length > 0) {
+                alert("Пожалуйста, заполните все обязательные поля");
+                return false;
+            }
+            return true;
+        }
+
+        async function deleteWorker(id) {
+            if (!confirm("Вы уверены, что хотите удалить этого контрагента?")) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:3000/workers/${id}`, {
+                    method: "DELETE"
+                });
+                
+                if (!response.ok) throw new Error("Ошибка при удалении контрагента");
+                
+                await loadWorkers();
+            } catch (error) {
+                console.error("Ошибка:", error);
+                alert(error.message);
+            }
+        }
+
+        function editWorker(id) {
+            const row = workersTableBody.querySelector(`tr[data-id="${id}"]`);
+            if (!row) return;
+            
+            // Сброс предыдущего выделения
+            document.querySelectorAll('.highlight').forEach(el => {
+                el.classList.remove('highlight');
+            });
+            row.classList.add('highlight');
+            
+            // Получение данных из строки
+            const cells = row.cells;
+            document.querySelector('input[name="fam"]').value = cells[1].textContent;
+            document.querySelector('input[name="name"]').value = cells[2].textContent;
+            document.querySelector('input[name="otch"]').value = cells[3].textContent;
+            
+            // Установка значений в select'ы
+            setSelectValue('gender_id', cells[4].textContent);
+            setSelectValue('prof_id', cells[5].textContent);
+            setSelectValue('position_id', cells[6].textContent);
+            setSelectValue('face_id', cells[7].textContent);
+            setSelectValue('education_id', cells[8].textContent);
+            
+            // Конвертация и установка дат
+            document.querySelector('input[name="date_hired"]').value = convertDisplayDateToInput(cells[9].textContent);
+            document.querySelector('input[name="date_fired"]').value = convertDisplayDateToInput(cells[10].textContent);
+            
+            editingWorkerId = id;
+            addWorkerButton.textContent = "Сохранить";
+        }
+
+        function setSelectValue(selectName, textValue) {
+            if (textValue === 'Не указано') textValue = '';
+            
+            const select = document.querySelector(`select[name="${selectName}"]`);
+            if (!select) return;
+            
+            for (let option of select.options) {
+                if (option.textContent === textValue) {
+                    select.value = option.value;
+                    break;
+                }
+            }
+        }
+
+        function convertDisplayDateToInput(dateStr) {
+            if (!dateStr || dateStr === "Не указано") return "";
+            
+            const parts = dateStr.split('.');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return "";
+        }
+
+        function resetForm() {
+            document.querySelectorAll('.input-field').forEach(field => {
+                if (field.tagName === 'INPUT') {
+                    field.value = '';
+                } else if (field.tagName === 'SELECT') {
+                    field.value = '';
+                }
+            });
+            
+            document.querySelectorAll('.highlight').forEach(el => {
+                el.classList.remove('highlight');
+            });
+            
+            editingWorkerId = null;
+            addWorkerButton.textContent = "Добавить";
+        }
+
+        // 7. Темная тема
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        }
+
+        // 8. Инициализация приложения
+        function initializeApp() {
+            // Обработчики событий
+            searchInput.addEventListener('input', handleSearch);
+            addWorkerButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                saveWorker();
+            });
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Загрузка данных
+            loadInitialData();
+        }
+
+        // Кнопка "Вверх"
+        const scrollToTopButton = document.getElementById('scrollToTop');
+                
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTopButton.classList.add('visible');
+            } else {
+                scrollToTopButton.classList.remove('visible');
+            }
+        });
+        
+        scrollToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Запуск приложения
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+  </body>
+</html>

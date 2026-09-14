@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Договоры</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <nav>
+        <div class="logo-container">
+            <img src="img/dogovor.jpg" alt="Логотип" class="logo">
+        </div>
+        <a href="list.html" class="active">Договоры</a>
+        <a href="index.html">Договоры с контрагентами</a>
+        <a href="tables.html">Другие</a>
+    </nav>
+    <h1>Договоры</h1>
+    <button id="themeToggle" aria-label="Переключить тему"></button>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Поиск по таблице..." />
+    </div>
+    <table id="listTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Номер договора</th>
+                <th>Договоры с контрагентами</th>
+                <th>Телефон и e-mail</th>
+                <th>Статус</th>
+                <th>Сумма</th>
+                <th>Дата договора</th>
+                <th>Действия</th>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input
+                        type="number"
+                        name="number"
+                        placeholder="Номер договора"
+                        class="input-field"
+                        required
+                    />
+                </td>
+                <td>
+                    <select name="workers_id" class="input-field" required>
+                        <option value="">Выберите </option>
+                        
+                    </select>
+                </td>
+                <td>
+                    <input type="text" name="phone_email" placeholder="Телефон и e-mail" class="input-field" />
+                </td>
+                <td>
+                    <select name="actions_id" class="input-field" required>
+                        <option value="">Выберите статус </option>
+                     
+                    </select>
+                </td>
+                <td>
+                    <input type="number" name="sum" placeholder="Сумма" class="input-field" />
+                </td>
+                <td><input type="date" name="date" class="input-field" /></td>
+                <td><button id="addListButton">Добавить</button></td>
+            </tr>
+        </thead>
+        <tbody>
+            
+        </tbody>
+    </table>
+
+    <!-- Кнопка "Вверх" -->
+    <button id="scrollToTop" title="Наверх" aria-label="Наверх">
+        <img src="img/up.jpg" alt="Наверх" class="scroll-to-top-logo">
+    </button>
+
+    <script>
+        // DOM элементы
+        const listTableBody = document.getElementById("listTable").getElementsByTagName("tbody")[0];
+        const addListButton = document.getElementById("addListButton");
+        const searchInput = document.getElementById("searchInput");
+        
+        // Данные приложения
+        let editingListId = null;
+        let workersData = [];
+        let actionsData = [];
+        let educationData = [];
+
+        // Загрузка данных об услугах (education)
+        function loadEducation() {
+            return fetch("http://localhost:3000/api/education")
+                .then(response => {
+                    if (!response.ok) {
+                        console.warn("Endpoint /education не доступен, используем заглушку");
+                        // Создаем заглушку на основе данных из дампа БД
+                        return Promise.resolve([
+                            {id: 1, name: "Пик"},
+                            {id: 2, name: "Квартиры"}, 
+                            {id: 3, name: "Аренда"}
+                        ]);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    educationData = data;
+                    return data;
+                })
+                .catch(error => {
+                    console.error("Ошибка загрузки услуг:", error);
+                    // Возвращаем заглушку в случае ошибки
+                    return [
+                        {id: 1, name: "Пик"},
+                        {id: 2, name: "Квартиры"},
+                        {id: 3, name: "Аренда"}
+                    ];
+                });
+        }
+
+        // Загрузка работников с объединением данных об услугах
+        function loadWorkers() {
+            return fetch("http://localhost:3000/workers")
+                .then(response => {
+                    if (!response.ok) throw new Error("Ошибка загрузки работников");
+                    return response.json();
+                })
+                .then(data => {
+                    workersData = data.map(worker => {
+                        const education = educationData.find(edu => edu.id === worker.education_id);
+                        return {
+                            ...worker,
+                            education_name: education ? education.name : "Не указано"
+                        };
+                    });
+                    updateWorkersSelect();
+                    return workersData;
+                })
+                .catch(error => {
+                    console.error("Ошибка:", error);
+                    alert("Не удалось загрузить данные работников");
+                    return [];
+                });
+        }
+
+        // Обновление выпадающего списка работников
+        function updateWorkersSelect() {
+            const select = document.querySelector('select[name="workers_id"]');
+            select.innerHTML = '<option value="">Выберите</option>';
+            
+            workersData.forEach(worker => {
+                const option = document.createElement("option");
+                option.value = worker.id;
+                option.textContent = `${worker.fam} ${worker.name} ${worker.otch} (${worker.education_name})`;
+                option.setAttribute('data-education', worker.education_name);
+                select.appendChild(option);
+            });
+        }
+
+        // Загрузка статусов (без изменений)
+        function loadActions() {
+            return fetch("http://localhost:3000/api/actions")
+                .then(response => {
+                    if (!response.ok) throw new Error("Ошибка загрузки статусов");
+                    return response.json();
+                })
+                .then(data => {
+                    actionsData = data;
+                    updateActionsSelect();
+                    return data;
+                })
+                .catch(error => {
+                    console.error("Ошибка:", error);
+                    alert("Не удалось загрузить статусы");
+                    return [];
+                });
+        }
+
+        // Обновление выпадающего списка статусов
+        function updateActionsSelect() {
+            const select = document.querySelector('select[name="actions_id"]');
+            select.innerHTML = '<option value="">Выберите статус</option>';
+            
+            actionsData.forEach(action => {
+                const option = document.createElement("option");
+                option.value = action.id;
+                option.textContent = action.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Загрузка и отображение списка договоров
+        function loadList() {
+            fetch("http://localhost:3000/list")
+                .then(response => {
+                    if (!response.ok) throw new Error("Ошибка загрузки договоров");
+                    return response.json();
+                })
+                .then(data => {
+                    renderTable(data);
+                })
+                .catch(error => {
+                    console.error("Ошибка:", error);
+                    alert("Не удалось загрузить список договоров");
+                });
+        }
+
+        // Отображение таблицы с ФИО и услугами
+        function renderTable(data) {
+            listTableBody.innerHTML = "";
+            
+            data.forEach(item => {
+                const row = listTableBody.insertRow();
+                row.setAttribute("data-id", item.id);   
+                
+                const worker = workersData.find(w => w.id === item.workers_id);
+                const action = actionsData.find(a => a.id === item.actions_id);
+                
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.number || ''}</td>
+                    <td>
+                        ${worker ? `
+                            ${worker.fam} ${worker.name} ${worker.otch}
+                            <br><small>Договор: ${worker.education_name}</small>
+                        ` : 'Не указан'}
+                    </td>
+                    <td>${item.phone_email || 'Не указан'}</td>
+                    <td>${action ? action.name : 'Не указан'}</td>
+                    <td>${item.sum ? formatSum(item.sum) : '0'} руб.</td>
+                    <td>${item.date ? formatDate(item.date) : 'Не указана'}</td>
+                    <td>
+                        <button onclick="editListItem(${item.id})">Изменить</button>
+                        <button class="delete-button" onclick="deleteListItem(${item.id})">Удалить</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Форматирование суммы
+        function formatSum(sum) {
+            return new Intl.NumberFormat('ru-RU').format(sum);
+        }
+
+        // Форматирование даты
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU');
+        }
+
+        // Сохранение договора
+        function saveListItem() {
+            const formData = getFormData();
+            
+            if (!validateForm(formData)) {
+                return;
+            }
+
+            const url = editingListId 
+                ? `http://localhost:3000/list/${editingListId}`
+                : 'http://localhost:3000/list';
+                
+            const method = editingListId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Ошибка сохранения");
+                return response.json();
+            })
+            .then(() => {
+                resetForm();
+                loadList();
+            })
+            .catch(error => {
+                console.error("Ошибка:", error);
+                alert("Ошибка при сохранении данных");
+            });
+        }
+
+        // Получение данных формы
+        function getFormData() {
+            return {
+                number: document.querySelector('input[name="number"]').value,
+                workers_id: document.querySelector('select[name="workers_id"]').value,
+                phone_email: document.querySelector('input[name="phone_email"]').value,
+                actions_id: document.querySelector('select[name="actions_id"]').value,
+                sum: document.querySelector('input[name="sum"]').value || null,
+                date: document.querySelector('input[name="date"]').value || null
+            };
+        }
+
+        // Валидация формы
+        function validateForm(data) {
+            if (!data.number || !data.workers_id || !data.actions_id) {
+                alert("Заполните обязательные поля: Номер, Контрагент и Статус");
+                return false;
+            }
+            return true;
+        }
+
+        // Редактирование договора
+        function editListItem(id) {
+            const row = listTableBody.querySelector(`tr[data-id="${id}"]`);
+            if (!row) return;
+            
+            // Сброс предыдущего выделения
+            document.querySelectorAll('.highlight').forEach(el => {
+                el.classList.remove('highlight');
+            });
+            row.classList.add('highlight');
+            
+            // Получение данных из строки
+            const cells = row.cells;
+            const number = cells[1].textContent.trim();
+            const workerText = cells[2].textContent.trim();
+            const phoneEmail = cells[3].textContent.trim();
+            const actionName = cells[4].textContent.trim();
+            const sum = cells[5].textContent.replace(/\D/g, '');
+            const date = convertDisplayDateToInput(cells[6].textContent.trim());
+            
+            // Установка значений в форму
+            document.querySelector('input[name="number"]').value = number;
+            document.querySelector('input[name="phone_email"]').value = phoneEmail === 'Не указан' ? '' : phoneEmail;
+            document.querySelector('input[name="sum"]').value = sum;
+            document.querySelector('input[name="date"]').value = date;
+            
+            // Поиск ID для select'ов
+            const workerMatch = workerText.match(/(.+?)\s(.+?)\s(.+?)(\s|$)/);
+            if (workerMatch) {
+                const [_, fam, name, otch] = workerMatch;
+                const worker = workersData.find(w => 
+                    w.fam === fam && w.name === name && w.otch === otch
+                );
+                if (worker) {
+                    document.querySelector('select[name="workers_id"]').value = worker.id;
+                }
+            }
+            
+            const action = actionsData.find(a => a.name === actionName);
+            if (action) {
+                document.querySelector('select[name="actions_id"]').value = action.id;
+            }
+            
+            editingListId = id;
+            addListButton.textContent = "Сохранить";
+        }
+
+        // Конвертация даты для input[type="date"]
+        function convertDisplayDateToInput(dateStr) {
+            if (dateStr === 'Не указана') return '';
+            
+            const parts = dateStr.split('.');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return '';
+        }
+
+        // Удаление договора
+        function deleteListItem(id) {
+            if (!confirm('Вы уверены, что хотите удалить этот договор?')) {
+                return;
+            }
+            
+            fetch(`http://localhost:3000/list/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Ошибка удаления");
+                loadList();
+            })
+            .catch(error => {
+                console.error("Ошибка:", error);
+                alert("Ошибка при удалении договора");
+            });
+        }
+
+        // Сброс формы
+        function resetForm() {
+            document.querySelector('input[name="number"]').value = '';
+            document.querySelector('select[name="workers_id"]').value = '';
+            document.querySelector('input[name="phone_email"]').value = '';
+            document.querySelector('select[name="actions_id"]').value = '';
+            document.querySelector('input[name="sum"]').value = '';
+            document.querySelector('input[name="date"]').value = '';
+            
+            document.querySelectorAll('.highlight').forEach(el => {
+                el.classList.remove('highlight');
+            });
+            
+            editingListId = null;
+            addListButton.textContent = "Добавить";
+        }
+
+        // Поиск по таблице
+        function searchTable() {
+            const term = searchInput.value.toLowerCase();
+            const rows = listTableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let found = false;
+                
+                for (let cell of cells) {
+                    if (cell.textContent.toLowerCase().includes(term)) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                row.style.display = found ? '' : 'none';
+            });
+        }
+
+        // Инициализация приложения
+        function initApp() {
+            // Загрузка данных в правильном порядке
+            loadEducation()
+                .then(() => Promise.all([loadWorkers(), loadActions()]))
+                .then(() => loadList())
+                .catch(error => console.error("Ошибка инициализации:", error));
+            
+            // Обработчики событий
+            searchInput.addEventListener('input', searchTable);
+            addListButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                saveListItem();
+            });
+            
+            // Темная тема
+            const themeToggle = document.getElementById('themeToggle');
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-theme');
+                localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+            });
+            
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        }
+
+        // Кнопка "Вверх"
+        const scrollToTopButton = document.getElementById('scrollToTop');
+                
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollToTopButton.classList.add('visible');
+            } else {
+                scrollToTopButton.classList.remove('visible');
+            }
+        });
+        
+        scrollToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Запуск приложения
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
